@@ -48,7 +48,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 public final class Constants {
 
   public static final double stickDeadband = 0.12;
-  public static final CANBus mechCanBus = new CANBus("MechCan");
+  public static final CANBus mechCanBus = new CANBus("MechCAN");
   public static final CANBus swerveCanBus = new CANBus("Swerve CANivore");
 
 
@@ -92,7 +92,7 @@ public final class Constants {
 
   public static final class Swerve{
     public static final int pigeonID = 0;
-    public static final CANBus CanBus = new CANBus("Drivetrain");
+    //public static final CANBus CanBus = new CANBus("Drivetrain");
     public static final double maxSpeed = 4.5; // 4.5 FOR COMP
     public static final double maxAngularVelocity = 10.0; //10 FOR COMP
 
@@ -251,10 +251,10 @@ public final class Constants {
         /* Module Specific Constants */
         /* Front Left Module - Module 0 */
         public static final class Mod0 { 
-            public static final int driveMotorID = 1;
-            public static final int angleMotorID = 2;
+            public static final int driveMotorID = 2;
+            public static final int angleMotorID = 1;
             public static final int canCoderID = 3;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(-0.21142578125); //Rotation2d.fromDegrees(90.0);
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.21142578125); //Rotation2d.fromDegrees(90.0);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, angleMotorID,
                     canCoderID, angleOffset);
         }
@@ -264,7 +264,7 @@ public final class Constants {
             public static final int driveMotorID = 4;
             public static final int angleMotorID = 5;
             public static final int canCoderID = 6;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.456298828125);
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.035);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, angleMotorID,
                     canCoderID, angleOffset);
         }
@@ -274,7 +274,7 @@ public final class Constants {
             public static final int driveMotorID = 8;
             public static final int angleMotorID = 7;
             public static final int canCoderID = 9;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(-0.322021484375);//-135
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.322021484375);//-135
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, angleMotorID,
                     canCoderID, angleOffset);
         }
@@ -284,7 +284,7 @@ public final class Constants {
             public static final int driveMotorID = 10;
             public static final int angleMotorID = 11;
             public static final int canCoderID = 12;
-            public static final Rotation2d angleOffset = Rotation2d.fromRotations(-0.227294921875);//180
+            public static final Rotation2d angleOffset = Rotation2d.fromRotations(0.727294921875);//180
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, angleMotorID,
                     canCoderID, angleOffset);
         }    
@@ -294,7 +294,7 @@ public final class Constants {
   public static class Vision {
     public static final String sCameraName = "Dragon";
     public static final Transform3d kRobotToCam = 
-        new Transform3d(new Translation3d(0.1397, 0.2921, 0.4953), new Rotation3d(0.0, 0.35, 0.443));
+        new Transform3d(new Translation3d(-0.1397, -0.2921, 0.4953), new Rotation3d(0.0, Units.degreesToRadians(20), Units.degreesToRadians(15))); //X is swapped, angle //pitch = 0.35 
     public static final AprilTagFieldLayout kTagLayout = 
       AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
     public static final Matrix<N3, N1> kSingleTagStdDevs = 

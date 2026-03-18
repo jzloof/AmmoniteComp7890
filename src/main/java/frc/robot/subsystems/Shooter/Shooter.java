@@ -42,6 +42,7 @@ public class Shooter extends SubsystemBase {
 
   private double distTest;
   private double dTempRPM;
+  public double speed;
 
   // Control shooter as a flywheel with voltage compensation to ensure consistent speed
   final VelocityVoltage m_velocity  = new VelocityVoltage(0);
@@ -51,8 +52,27 @@ public class Shooter extends SubsystemBase {
   public Shooter() {
     objShooter = new TalonFX(Constants.MotorIDs.iShooterLeader, Constants.mechCanBus);
     objFollowShooter =  new TalonFX(Constants.MotorIDs.iShooterFollower, Constants.mechCanBus);
-    m_velocity.Slot = 0;
 
+    var shooterConfig = new TalonFXConfiguration();
+    shooterConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    shooterConfig.CurrentLimits.SupplyCurrentLimitEnable = false;
+    shooterConfig.CurrentLimits.SupplyCurrentLimit = 30;
+    shooterConfig.CurrentLimits.SupplyCurrentLowerLimit = 8;
+    shooterConfig.CurrentLimits.SupplyCurrentLowerTime = 0.5;
+    shooterConfig.Voltage.PeakForwardVoltage = 12;
+    shooterConfig.Voltage.PeakReverseVoltage = -12;
+    shooterConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+
+    shooterConfig.Slot0.kP = 0.1;
+    shooterConfig.Slot0.kI = 0.0;
+    shooterConfig.Slot0.kD = 0.0;
+    shooterConfig.Slot0.kS = 0.4;
+    shooterConfig.Slot0.kV = 0.2;
+    speed = 0;
+    objShooter.getConfigurator().apply(shooterConfig);
+    shooterConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    objFollowShooter.getConfigurator().apply(shooterConfig);
+/*
     TalonFXConfiguration objTalonFXConfig = new TalonFXConfiguration();
     objTalonFXConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     objTalonFXConfig.CurrentLimits.SupplyCurrentLimit = 60.0;
@@ -70,9 +90,11 @@ public class Shooter extends SubsystemBase {
       objTalonFXStatusCode = objFollowShooter.getConfigurator().apply(objTalonFXConfig);
       if (objTalonFXStatusCode.isOK()) break;
      }
-
+*/
   
-    objFollowShooter.setControl(new Follower(objShooter.getDeviceID(), MotorAlignmentValue.Opposed));
+    //objFollowShooter.setControl(new Follower(objShooter.getDeviceID(), MotorAlignmentValue.Opposed));
+
+    m_velocity.Slot = 0;
 
     // === TREE MAP CONFIG === \\
      // TODO: FIX VALUES
@@ -105,24 +127,31 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putNumber("RPM Interp result", getDistance2RPM(distTest));
     dTempRPM = SmartDashboard.getNumber("Test RPM", 3500.0);
     SmartDashboard.putNumber("Test RPM", dTempRPM);
+    SmartDashboard.putNumber("speed", -speed);
+    objShooter.setControl(m_velocity.withVelocity(speed).withSlot(0));
+
+    SmartDashboard.putNumber("ShooterRPS", -objShooter.getVelocity().getValueAsDouble());
+
   }
 
-  public BooleanSupplier bsShooterFast(){
-    if (getSpeedRPM() > 1000.0) {
-      return () -> true;
+  public Boolean isShooterReady(){
+    if (objShooter.getVelocity().getValueAsDouble() -  speed < 1) {
+      return true;
     }
     
-    else return () -> false;
+    else return false;
   }
    
   public void stopShooter(){
-    objShooter.stopMotor();
+    //objShooter.stopMotor();
+    speed = 0;    
   }
 
   public void runShooter(double dSpeed){
     //objShooter.set(dSpeed);
     //Change to velocity control with v comp
-    objShooter.setControl(m_velocity.withVelocity(dSpeed).withSlot(0));
+    SmartDashboard.putNumber("dhooter/req speed", dSpeed);
+    speed = dSpeed;
   }
 
   public void runShooterRPM(double dTargetRPM){
@@ -140,9 +169,5 @@ public class Shooter extends SubsystemBase {
   public double getSpeedRPM() {
     objStatSig = objShooter.getVelocity();
     return objStatSig.getValueAsDouble() * 60.0;  
-  }
-
-  public Command shooterRunning(double dSpeed){
-    return run(() -> objShooter.set(dSpeed));
   }
 }

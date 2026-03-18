@@ -29,12 +29,15 @@ public class ShooterFull extends SequentialCommandGroup {
     // Add your commands in the addCommands() call, e.g.
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
-      new RunCommand(() -> objShooter.runShooterRPM(dShootSpeed), objShooter).withTimeout(0.25),
+      // new RunCommand(() -> objShooter.runShooterRPM(dShootSpeed), objShooter).withTimeout(0.25),
+      new RunCommand(() -> objShooter.runShooter(dShootSpeed), objShooter).withTimeout(0.25),
       //
-      new ParallelRaceGroup(
-        new RunCommand(() -> objShooter.runShooterRPM(dShootSpeed), objShooter),
+      new ParallelCommandGroup(
+        new RunCommand(() ->objShooter.runShooter(dShootSpeed), objShooter),
+        // new RunCommand(() -> objShooter.runShooterRPM(dShootSpeed), objShooter),
         new Feed(objFeeder, objIndexer, objIntake),
-        new PivotIntake(objPivot, MotorSpeeds.dPivSlow))
+        new PivotIntake(objPivot, MotorSpeeds.dPivSlow)
+      )
     );
   }
 }

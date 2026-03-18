@@ -24,6 +24,7 @@ public class Indexer extends SubsystemBase {
   /** Creates a new Hopper. */
   public Indexer() {
     objIndexerLeader = new TalonFX(Constants.MotorIDs.iIndexerLeader, Constants.mechCanBus);
+    objIndexerFollower = new TalonFX(Constants.MotorIDs.iIndexerFollower, Constants.mechCanBus);
     TalonFXConfiguration objTalonFXConfig = new TalonFXConfiguration();
     objTalonFXConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     objTalonFXConfig.CurrentLimits.SupplyCurrentLimit = 30.0;

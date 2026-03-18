@@ -162,9 +162,9 @@ public class RobotContainer {
             new RunCommand(()->objIndexer.stopIndexer(), objIndexer)
         );
 
-        objShooter.setDefaultCommand(
-            new RunCommand(()->objShooter.runShooter(0.0), objShooter) //Original 0.15
-        );
+        //objShooter.setDefaultCommand(
+        //    new RunCommand(()->objShooter.runShooter(0.0), objShooter) //Original 0.15
+        //);
 
         objPivot.setDefaultCommand(
             new RunCommand(() -> objPivot.stopPivot(), objPivot)
@@ -197,15 +197,27 @@ public class RobotContainer {
         );
 
         // === Shooter == \\
-        //xboxDriver.axisGreaterThan(3, 0.25).whileTrue(new ShooterFull(objShooter, MotorSpeeds.dShooterRPM, objFeeder, objIndexer, objIntake, objPivot));
+        //xboxDriver.axisGreaterThan(3, 0.25).whileTrue(new ShooterFull(objShooter, getShotSpeed(), objFeeder, objIndexer, objIntake, objPivot));
         xboxDriver.leftBumper().whileTrue
             (
-                Commands.runOnce(() -> objShooter.runShooter(getShotSpeed()))
+                
+                Commands.run(() -> objShooter.runShooter(getShotSpeed()))
+                .alongWith(Commands.run(() -> objFeeder.runFeeder(Constants.MotorSpeeds.dFeederSpeed), objFeeder))
+                .alongWith(new RunCommand(() -> objIndexer.runIndexer(Constants.MotorSpeeds.dIndexerSpeed)))
             )
             .onFalse
             (
                 Commands.runOnce(() -> objShooter.stopShooter())
             );
+
+        //xboxDriver.leftBumper().whileTrue(
+            //Commands.runOnce(() -> objShooter.runShooter(getShotSpeed()))
+            ///new RunCommand(() -> objShooter.runShooter(getShotSpeed())).until(objShooter::isShooterReady)).withTimeout(0.25)
+            //.andThen(
+              //  (new RunCommand(() -> objFeeder.runFeeder(Constants.MotorSpeeds.dFeederSpeed), objFeeder))
+                //.alongWith(
+                //.alongWith(new RunCommand(() -> objIndexer.runIndexer(Constants.MotorSpeeds.dIndexerSpeed)))
+           // ).onFalse(Commands.runOnce(() -> objShooter.stopShooter()));
 
 
         // === Intake === \\ 
@@ -266,7 +278,7 @@ public class RobotContainer {
     }
 
     private double getShotSpeed(){
-        return getDistance() * 0.2;
+        return getDistance() * -12.80;
     }
 
     public Command getAutonomousCommand() {
