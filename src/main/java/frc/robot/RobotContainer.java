@@ -3,51 +3,22 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
-import static edu.wpi.first.units.Units.*;
-
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.fasterxml.jackson.databind.util.Named;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.DriverStation.MatchType;
-import java.util.HashMap;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-import org.ejml.equation.IntegerSequence.Range;
-import frc.robot.subsystems.ExampleSubsystem;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.MotorSpeeds;
 import frc.robot.commands.PivotIntake;
 import frc.robot.commands.ShooterFull;
 import frc.robot.commands.TeleopSwerve;
-// import frc.robot.generated.TunerConstants_comp;
 import frc.robot.subsystems.Hopper.Pivot;
 import frc.robot.subsystems.Hopper.Indexer;
 import frc.robot.subsystems.Shooter.Shooter;
@@ -55,40 +26,12 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.Shooter.Feeder;
 import frc.robot.subsystems.Hopper.Intake;
 import frc.robot.commands.LocalSwerve;
-import frc.robot.commands.Feed;
-// import frc.robot.commands.HubAim;
-import frc.robot.commands.ShooterSolo;
 import frc.robot.commands.TrenchShotAuto;
 // import frc.robot.commands.PhotonDrive;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.events.EventTrigger;
-import java.util.HashMap;
 
 
 public class RobotContainer {
-    /* 
-    private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    // private double MaxSpeed = 1.0 * TunerConstants_beta.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
-
-    // Setting up bindings for necessary control of the swerve drive platform 
-    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.02).withRotationalDeadband(MaxAngularRate * 0.02) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
-    private final Telemetry logger = new Telemetry(MaxSpeed);
-
-    // === CONTROLLERS === \\
-    private final CommandXboxController xboxDriver = new CommandXboxController(0);
-
-    // public final CommandSwerveDrivetrain drivetrain = TunerConstants_beta.createDrivetrain(); 
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain(); // comment out the other one for the comp chassi
-    
-    */
 
     CommandXboxController xboxDriver = new CommandXboxController(0);
 
@@ -107,7 +50,6 @@ public class RobotContainer {
     private final Indexer objIndexer = new Indexer();
     private final Intake objIntake = new Intake();
     private final Pivot objPivot = new Pivot();
-    // private Photon3 objPhoton3 = new Photon3(drivetrain::addVisionMeasurement);
     private final Field2d field;
   
     public Swerve getSwerve() {
@@ -162,10 +104,6 @@ public class RobotContainer {
             new RunCommand(()->objIndexer.stopIndexer(), objIndexer)
         );
 
-        //objShooter.setDefaultCommand(
-        //    new RunCommand(()->objShooter.runShooter(0.0), objShooter) //Original 0.15
-        //);
-
         objPivot.setDefaultCommand(
             new RunCommand(() -> objPivot.stopPivot(), objPivot)
         );
@@ -179,50 +117,51 @@ public class RobotContainer {
     private void configureBindings() {
 
         // === OFFICIAL CONTROLS === \\
+        // Left bumper:         Shoot
+        // Right bumper:        Intake
+        // A button:            Pivot intake
+        // DPAD down:           Reverse intake
+        // DPAD up:             Reverse feeder
 
-        // == Drive == \\
-        //xboxDriver.button(8).onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-        xboxDriver.button(8).onTrue(new InstantCommand(() -> s_Swerve.zeroHeading()));
-        //xboxDriver.button(7).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.k180deg)));
-        xboxDriver.button(7).onTrue(s_Swerve.resetModulesToAbsolute());
-        // == Reset Forward Direction
+        /*  State machine description for shooting
+            1) spool up shooter
+            2) run feeder
+            3) run indexer
+            4) bump in intake
+        */
 
-        //xboxDriver.x().whileTrue(drivetrain.applyRequest(() -> brake)); 
-
-        // == Wheels X for no moving
-
-        ///For Testing///
         xboxDriver.rightBumper().whileTrue(
-            Commands.runOnce(() -> new LocalSwerve(s_Swerve, getTargetAngle()))  
+            Commands.sequence(
+                Commands.parallel(
+                    Commands.run(() -> new LocalSwerve(s_Swerve, s_Swerve.getTargetAngle()).withTimeout(0.5).schedule()),
+                    Commands.run(() -> objShooter.runShooter(s_Swerve.getShotSpeed()))
+                ),
+                Commands.run(() -> new WaitCommand(0.5)),
+                Commands.parallel(
+                    Commands.run(() -> objFeeder.runFeeder(Constants.MotorSpeeds.dFeederSpeed)),
+                    Commands.run(() -> objIndexer.runIndexer(Constants.MotorSpeeds.dIndexerSpeed)),
+                    Commands.run(() -> objPivot.agitatePivot())
+                )
+            )
+        )
+        .onFalse(
+            Commands.parallel(
+                Commands.run(() -> objShooter.stopShooter()),
+                Commands.run(() -> objFeeder.stopFeeder()),
+                Commands.run(() -> objIndexer.stopIndexer()),
+                Commands.run(() -> objPivot.stopPivot())
+            )
         );
 
-        // === Shooter == \\
-        //xboxDriver.axisGreaterThan(3, 0.25).whileTrue(new ShooterFull(objShooter, getShotSpeed(), objFeeder, objIndexer, objIntake, objPivot));
-        xboxDriver.leftBumper().whileTrue
-            (
-                
-                Commands.run(() -> objShooter.runShooter(getShotSpeed()))
-                .alongWith(Commands.run(() -> objFeeder.runFeeder(Constants.MotorSpeeds.dFeederSpeed), objFeeder))
-                .alongWith(new RunCommand(() -> objIndexer.runIndexer(Constants.MotorSpeeds.dIndexerSpeed)))
-            )
-            .onFalse
-            (
-                Commands.runOnce(() -> objShooter.stopShooter())
-            );
-
-        //xboxDriver.leftBumper().whileTrue(
-            //Commands.runOnce(() -> objShooter.runShooter(getShotSpeed()))
-            ///new RunCommand(() -> objShooter.runShooter(getShotSpeed())).until(objShooter::isShooterReady)).withTimeout(0.25)
-            //.andThen(
-              //  (new RunCommand(() -> objFeeder.runFeeder(Constants.MotorSpeeds.dFeederSpeed), objFeeder))
-                //.alongWith(
-                //.alongWith(new RunCommand(() -> objIndexer.runIndexer(Constants.MotorSpeeds.dIndexerSpeed)))
-           // ).onFalse(Commands.runOnce(() -> objShooter.stopShooter()));
-
+        // Intake control
+        xboxDriver.leftBumper().whileTrue(
+            Commands.run(() -> objIntake.runIntake(Constants.MotorSpeeds.dIntakeSpeed))  
+        )
+        .onFalse(
+            Commands.run(() -> objIntake.stopIntake())
+        );
 
         // === Intake === \\ 
-        xboxDriver.axisGreaterThan(2, 0.25).whileTrue(new RunCommand(
-                ()-> objIntake.runIntake(MotorSpeeds.dIntakeSpeed), objIntake));
 
         xboxDriver.a().toggleOnTrue(new PivotIntake(objPivot, MotorSpeeds.dPivotSpeed));
 
@@ -231,54 +170,7 @@ public class RobotContainer {
 
         xboxDriver.povUp().whileTrue(new RunCommand(
                 () -> objFeeder.runFeeder(-MotorSpeeds.dFeederSpeed), objFeeder));
-       
-       //drivetrain.registerTelemetry(logger::telemeterize);
-
-       // Logger.recordOutput("Swerve/Pose", getPose());
-      
-    }
- 
-    public double getTargetAngle() {
-        Translation2d target = Constants.Landmarks.hubPosition;
-        Pose2d robotPose = Swerve.flipIfRed(s_Swerve.getRobotPose());
-        SmartDashboard.putString("angle rpose", robotPose.toString());
-
-        if (robotPose.getX() > Constants.Landmarks.trenchline) {
-            if (robotPose.getY() < Constants.Landmarks.yMidline) {
-                target = Constants.Landmarks.lowerPassTarget;
-            }
-            else {
-                target = Constants.Landmarks.lowerPassTarget;
-            }
-        }
-
-        Translation2d toTarget = robotPose.getTranslation().minus(target);
-        double targetAngle = Math.toDegrees(Math.atan2(toTarget.getY(), toTarget.getX()));
-        SmartDashboard.putNumber("Target Angle", targetAngle);
-        return targetAngle;
-    }
-
-    public double getDistance(){
-        Pose2d robotPose = Swerve.flipIfRed(s_Swerve.getRobotPose());
-        SmartDashboard.putString("Robot pose", robotPose.toString());
-        Translation2d target = Constants.Landmarks.hubPosition;
-        if (robotPose.getX() > Constants.Landmarks.trenchline) {
-            if (robotPose.getY() < Constants.Landmarks.yMidline) {
-                target = Constants.Landmarks.lowerPassTarget;
-            }
-            else {
-                target = Constants.Landmarks.lowerPassTarget;
-            }
-        }
-
-        Translation2d toTarget = robotPose.getTranslation().minus(target);
-        double targetDistance = Math.abs(Math.hypot(toTarget.getX(), toTarget.getY()));
-        SmartDashboard.putNumber("Target distance", targetDistance);
-        return targetDistance;
-    }
-
-    private double getShotSpeed(){
-        return getDistance() * -12.80;
+             
     }
 
     public Command getAutonomousCommand() {

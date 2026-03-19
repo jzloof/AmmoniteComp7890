@@ -54,6 +54,10 @@ public class Swerve extends SubsystemBase {
 
     private final SwerveDrivePoseEstimator m_poseEstimator;
     private final Field2d field;
+    public double targetDistance;
+    public double shotSpeed;
+    public double targetAngle;
+    public Translation2d toTarget;
 
     private Pose2d simPose = new Pose2d();
     private Pose2d robotPose = new Pose2d();
@@ -91,6 +95,10 @@ public class Swerve extends SubsystemBase {
 
         field = new Field2d();
         SmartDashboard.putData("Field", field);
+
+        targetDistance = getDistance();
+        shotSpeed = getShotSpeed();
+        targetAngle = getTargetAngle();
 
         m_poseEstimator = new SwerveDrivePoseEstimator(
                 Constants.Swerve.swerveKinematics,
@@ -335,7 +343,21 @@ public class Swerve extends SubsystemBase {
     public Pose2d getRobotPose() {
         return robotPose;
     }
+
+    public double getDistance() {
+        return targetDistance;
+    }
      
+    public double getShotSpeed() {
+        // Place real equation here
+
+        return shotSpeed;
+    }
+
+    public double getTargetAngle() {
+        return targetAngle;
+    }
+
     @Override
     public void periodic() {
         m_poseEstimator.update(getGyroYaw(), getModulePositions());
@@ -371,6 +393,26 @@ public class Swerve extends SubsystemBase {
         //Pose2d pose = getPose();
         robotPose = getPose();
         field.setRobotPose(robotPose);   
+
+        // distance updates
+        SmartDashboard.putString("swerve/distance pose", robotPose.toString());
+        Translation2d target = Constants.Landmarks.hubPosition;
+        if (robotPose.getX() > Constants.Landmarks.trenchline) {
+            if (robotPose.getY() < Constants.Landmarks.yMidline) {
+                target = Constants.Landmarks.lowerPassTarget;
+            }
+            else {
+                target = Constants.Landmarks.lowerPassTarget;
+            }
+        }
+        Translation2d toTarget = robotPose.getTranslation().minus(target);
+        targetDistance = Math.abs(Math.hypot(toTarget.getX(), toTarget.getY()));
+        shotSpeed = targetDistance * -12.8;
+        SmartDashboard.putNumber("swerve/Target distance", targetDistance);
+        toTarget = robotPose.getTranslation().minus(target);
+        targetAngle = Math.toDegrees(Math.atan2(toTarget.getY(), toTarget.getX()));
+        SmartDashboard.putNumber("Target Angle", targetAngle);
+
         SmartDashboard.putString("actual pose", robotPose.toString());
         SmartDashboard.putBoolean("Align/x at set", xPID.atSetpoint());
         SmartDashboard.putBoolean("Align/y at set", yPID.atSetpoint());
