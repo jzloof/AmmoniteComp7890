@@ -294,7 +294,8 @@ public final class Constants {
   public static class Vision {
     public static final String sCameraName = "Dragon";
     public static final Transform3d kRobotToCam = 
-        new Transform3d(new Translation3d(-0.1397, -0.2921, 0.4953), new Rotation3d(0.0, Units.degreesToRadians(20), Units.degreesToRadians(15))); //X is swapped, angle //pitch = 0.35 
+        new Transform3d(new Translation3d(-0.1397, -0.2921, 0.4953), 
+        new Rotation3d(0.0, Units.degreesToRadians(-20), Units.degreesToRadians(195))); //X is swapped, angle //pitch = 0.35 
     public static final AprilTagFieldLayout kTagLayout = 
       AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
     public static final Matrix<N3, N1> kSingleTagStdDevs = 
