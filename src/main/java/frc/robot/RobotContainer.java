@@ -117,11 +117,11 @@ public class RobotContainer {
     private void configureBindings() {
 
         // === OFFICIAL CONTROLS === \\
-        // Left bumper:         Shoot
-        // Right bumper:        Intake
+        // Right Trigger (0.5):         Shoot
+        // Left Bumper (0.25):        Intake
         // A button:            Pivot intake
-        // DPAD down:           Reverse intake
-        // DPAD up:             Reverse feeder
+        // Lefft Bumper:           Reverse intake
+        // Right Bumper:             Reverse feeder
 
         /*  State machine description for shooting
             1) spool up shooter
@@ -130,7 +130,7 @@ public class RobotContainer {
             4) bump in intake
         */
 
-        xboxDriver.rightBumper().whileTrue(
+        xboxDriver.axisGreaterThan(3, 0.5).whileTrue(
             Commands.sequence(
                 Commands.parallel(
                     Commands.run(() -> new LocalSwerve(s_Swerve, s_Swerve.getTargetAngle()).withTimeout(0.5).schedule()),
@@ -154,7 +154,7 @@ public class RobotContainer {
         );
 
         // Intake control
-        xboxDriver.leftBumper().whileTrue(
+        xboxDriver.axisGreaterThan(2, 0.25).whileTrue(
             Commands.run(() -> objIntake.runIntake(Constants.MotorSpeeds.dIntakeSpeed))  
         )
         .onFalse(
@@ -165,10 +165,10 @@ public class RobotContainer {
 
         xboxDriver.a().toggleOnTrue(new PivotIntake(objPivot, MotorSpeeds.dPivotSpeed));
 
-        xboxDriver.povDown().whileTrue(new RunCommand(
+        xboxDriver.leftBumper().whileTrue(new RunCommand(
                 () -> objIntake.runIntake(-MotorSpeeds.dIntakeSpeed), objIntake));
 
-        xboxDriver.povUp().whileTrue(new RunCommand(
+        xboxDriver.rightBumper().whileTrue(new RunCommand(
                 () -> objFeeder.runFeeder(-MotorSpeeds.dFeederSpeed), objFeeder));
              
     }
